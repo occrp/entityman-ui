@@ -1,12 +1,20 @@
-var entityman = angular.module('entityman', ['ngRoute', 'ngFileUpload']),
+var entityman = angular.module('entityman', ['ngRoute', 'ngFileUpload', 'ui.bootstrap']),
     baseUrl = 'http://entityman.pudo.org';
 
 entityman.config(['$routeProvider',
   function($routeProvider) {
-  $routeProvider.
-    when('/', {
+  $routeProvider
+    .when('/', {
       templateUrl: 'index.html',
       controller: 'IndexController',
+      reloadOnSearch: true,
+      resolve: {
+        entities: loadEntities
+      }
+    })
+    .when('/file/:id', {
+      templateUrl: 'file.html',
+      controller: 'FileController',
       reloadOnSearch: true,
       resolve: {
         entities: loadEntities
@@ -18,25 +26,24 @@ var loadEntities = function($http) {
   return $http.get(baseUrl + '/entities/workspace/default');
 };
 
-entityman.controller('IndexController', function ($scope, $location, Upload, entities) {
-  var skipGroups = ['Fact', 'IngestedFile'];
+entityman.controller('BaseController', function ($scope, $modal) {
 
-  $scope.files = entities.data.o.IngestedFile;
+  $scope.uploadFile = function() {
+    var d = $modal.open({
+      templateUrl: 'upload.html',
+      controller: 'UploadController'
+    });
+  };
+
+});
+
+
+entityman.controller('UploadController', function($scope, $location, $modalInstance, Upload) {
   $scope.file = {};
   $scope.uploadMessage = null;
 
-  $scope.getEntities = function() {
-    var results = [];
-    angular.forEach(entities.data.o, function(entities, type) {
-      if (skipGroups.indexOf(type) != -1) {
-        return;
-      }
-      angular.forEach(entities, function(entity) {
-        entity.type = type;
-        results.push(entity);
-      });
-    });
-    return results;
+  $scope.close = function() {
+    $modalInstance.dismiss('cancel');
   };
 
   $scope.setFile = function(files) {
@@ -57,7 +64,13 @@ entityman.controller('IndexController', function ($scope, $location, Upload, ent
         $scope.uploadMessage = pct + '% uploaded';
       }
     }).success(function (data, status, headers, config) {
-      console.log('ok!', data);
+      for (var i in data.o) {
+        var entity = data.o[i];
+        if (entity['class'].indexOf('IngestedFile') != -1) {
+          $location.path('/file/' + entity.id);
+          $modalInstance.close('ok');
+        }
+      }
       $scope.file = {};
       $scope.uploadMessage = null;
     }).error(function (data, status, headers, conf) {
@@ -66,5 +79,38 @@ entityman.controller('IndexController', function ($scope, $location, Upload, ent
     });
   };
 
+});
 
+
+
+entityman.controller('IndexController', function ($scope, $location, entities) {
+  var skipGroups = ['Fact', 'IngestedFile'];
+
+  $scope.files = entities.data.o.IngestedFile;
+
+  $scope.getEntities = function() {
+    var results = [];
+    angular.forEach(entities.data.o, function(entities, type) {
+      if (skipGroups.indexOf(type) != -1) {
+        return;
+      }
+      // console.log(entities);
+      if (!angular.isArray(entities)) {
+        return;
+      };
+      angular.forEach(entities, function(entity) {
+        // console.log(entity);
+        entity.type = type;
+        results.push(entity);
+      });
+    });
+    return results;
+  };
+
+});
+
+
+entityman.controller('FileController', function ($scope, $location, $routeParams, entities) {
+  console.log(entities);
+  console.log($routeParams);
 });

@@ -8,9 +8,14 @@
   <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
   <link rel="shortcut icon" href="http://assets.pudo.org/img/favicon.ico">
 </head>
-<body>
+<body ng-controller="BaseController">
   <div class="container">
-    <h1 class="page-header"><a href='#/'>EntityMan Demo</a></h1>
+    <h1 class="page-header">
+      <div class="pull-right">
+          <a class="btn btn-default" ng-click="uploadFile()">Upload a file</a>
+      </div>
+      <a href='#/'>EntityMan Demo</a>
+    </h1>
     <div ng-view></div>
   </div>
 
@@ -22,10 +27,16 @@
           <tr>
             <th>Type</th>
             <th>Name</th>
+            <th>Files</th>
           </tr>
           <tr ng-repeat="entity in getEntities()">
             <td>{{entity.type}}</td>
-            <td>{{entity.label}}</td>
+            <td>
+              <a href="#/entity/{{entity.type}}/{{entity.id}}">{{entity.name}}</a>
+            </td>
+            <td>
+              <div class="badge">{{entity.fileIds.length}}</div>
+            </td>
           </tr>
         </table>
       </div>
@@ -38,38 +49,95 @@
             <th>Filename</th>
           </tr>
           <tr ng-repeat="file in files">
-            <td>{{file.file || 'Unnamed file'}}</td>
+            <td><a href="#/file/{{file.id}}">{{file.originalFilename}}</a></td>
           </tr>
         </table>
-        <form>
-          <div class="form-group">
-            <span ng-hide="uploadMessage">
-              <div class="input-group" ngf-select ngf-change="setFile($files, $event)">
-                <input type="text" class="form-control" ng-model="file.name" readonly>
-                <span class="input-group-btn">
-                  <span class="btn btn-default">
-                    Browse
-                  </span>
-                </span>
-              </div>
-              <p class="help-block">
-                Upload a file from your computer.
-              </p>
-              <button ng-click="upload()" class="btn btn-default" ng-disabled="!file.name">Upload</button>
-            </span>
-            <div ng-show="uploadMessage">
-              <i class="fa fa-spinner fa-pulse"></i>
-              {{uploadMessage}}
-            </div>
-          </div>
-        </form>
+
       </div>
+    </div>
+  </script>
+
+  <script type="text/ng-template" id="file.html">
+    <div class="row">
+      <div class="col-md-12">
+        <h3>Entities</h3>
+        <table class="table table-striped">
+          <tr>
+            <th>Type</th>
+            <th>Name</th>
+            <th>Files</th>
+          </tr>
+          <tr ng-repeat="entity in getEntities()">
+            <td>{{entity.type}}</td>
+            <td>
+              <a href="#/entity/{{entity.type}}/{{entity.id}}">{{entity.name}}</a>
+            </td>
+            <td>
+              <div class="badge">{{entity.fileIds.length}}</div>
+            </td>
+          </tr>
+        </table>
+      </div>
+    </div>
+  </script>
+
+  <script type="text/ng-template" id="entity.html">
+    <div class="row">
+      <div class="col-md-12">
+        <h3>
+          Files
+        </h3>
+        <table class="table table-striped">
+          <tr>
+            <th>Filename</th>
+          </tr>
+          <tr ng-repeat="file in files">
+            <td><a href="#/file/{{file.id}}">{{file.originalFilename}}</a></td>
+          </tr>
+        </table>
+      </div>
+    </div>
+  </script>
+
+  <script type="text/ng-template" id="upload.html">
+    <div class="modal-header">
+      <button type="button" class="close" ng-click="close()" aria-hidden="true">&times;</button>
+      <h4 class="modal-title">Upload a file</h4>
+    </div>
+
+    <div class="modal-body">
+      <form>
+        <div class="form-group">
+          <span ng-hide="uploadMessage">
+            <div class="input-group" ngf-select ngf-change="setFile($files, $event)">
+              <input type="text" class="form-control" ng-model="file.name" readonly>
+              <span class="input-group-btn">
+                <span class="btn btn-default">
+                  Browse
+                </span>
+              </span>
+            </div>
+            <p class="help-block">
+              Upload a file from your computer.
+            </p>
+          </span>
+          <div ng-show="uploadMessage">
+            <i class="fa fa-spinner fa-pulse"></i>
+            {{uploadMessage}}
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <div class="modal-footer">
+      <button type="button" class="btn btn-primary" ng-click="upload()" ng-disabled="!file.name">Upload</button>
     </div>
   </script>
 
   <script src='https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.4.2/angular.min.js'></script>
   <script src='https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.4.2/angular-route.min.js'></script>
   <script src='https://cdnjs.cloudflare.com/ajax/libs/danialfarid-angular-file-upload/5.0.9/ng-file-upload-all.min.js'></script>
+  <script src='https://cdnjs.cloudflare.com/ajax/libs/angular-ui-bootstrap/0.13.0/ui-bootstrap-tpls.min.js'></script>
   <script src='app.js'></script>
 </body>
 </html>
