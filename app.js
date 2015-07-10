@@ -55,15 +55,46 @@ entityman.directive('fileListing', function () {
 });
 
 
-entityman.controller('BaseController', function ($scope, $modal) {
+entityman.directive('entityListing', function () {
+  return {
+    restrict: 'E',
+    scope: {
+      entities: '='
+    },
+    templateUrl: 'entity_listing.html',
+    link: function (scope, element, attrs, model) {
+      scope.shownEntities = [];
 
+      scope.$watch('entities', function(entities) {
+        if (!entities) return;
+
+        var matching = [];
+        entities.forEach(function(e) {
+          if (['Fact', 'IngestedFile'].indexOf(e.type) == -1) {
+            matching.push(e);
+          }
+        });
+
+        scope.shownEntities = matching.sort(function(a, b) {
+          var dist = a.fileIds.length - b.fileIds.length;
+          if (dist != 0) {
+            return dist;
+          }
+          return a.label.localeCompare(b.label);
+        });
+      });
+    }
+  };
+});
+
+
+entityman.controller('BaseController', function ($scope, $modal) {
   $scope.uploadFile = function() {
     var d = $modal.open({
       templateUrl: 'upload.html',
       controller: 'UploadController'
     });
   };
-
 });
 
 
@@ -107,46 +138,46 @@ entityman.controller('UploadController', function($scope, $location, $modalInsta
       $scope.uploadMessage = null;
     });
   };
-
 });
 
 
 entityman.controller('IndexController', function ($scope, $location, entities) {
-  var skipGroups = ['Fact', 'IngestedFile'];
-
-  $scope.files = entities.data.o.IngestedFile;
-
-  console.log($scope.files);
-
-  $scope.getEntities = function() {
-    var results = [];
-    angular.forEach(entities.data.o, function(entities, type) {
-      if (skipGroups.indexOf(type) != -1) {
-        return;
-      }
-      // console.log(entities);
-      if (!angular.isArray(entities)) {
-        return;
-      };
+  var skipGroups = ;
+  var results = [];
+  angular.forEach(entities.data.o, function(entities, type) {
+    if (angular.isArray(entities)) {
       angular.forEach(entities, function(entity) {
-        // console.log(entity);
         entity.type = type;
         results.push(entity);
       });
-    });
-    return results;
-  };
-
+    };
+  });
+  $scope.entities = results;
+  $scope.files = entities.data.o.IngestedFile;
 });
 
 
 entityman.controller('FileController', function ($scope, $location, $routeParams, entities) {
-  console.log(entities);
-  console.log($routeParams);
+  var fileId = $routeParams.id;
+  var results = [];
+  angular.forEach(entities.data.o, function(entities, type) {
+    if (angular.isArray(entities)) {
+      angular.forEach(entities, function(entity) {
+        if (entity.fileIds.indexOf(fileId) != -1) {
+          entity.type = type;
+          results.push(entity);
+        }
+        if (entity.id == fileId) {
+          $scope.file = entity;
+        }
+      });
+    };
+  });
+  $scope.entities = results;
 });
 
 
-entityman.controller('EntityController', function ($scope, $location, $routeParams, entities) {
-  console.log(entities);
-  console.log($routeParams);
+entityman.controller('EntityController', function ($scope, $location, $routeParams) {
+  //console.log(entities);
+  //console.log($routeParams);
 });
