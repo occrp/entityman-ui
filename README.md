@@ -1,2 +1,3 @@
-# demo-entityman
-It's not an entityperson, it's an entityman! 
+# EntityMan UI
+
+It's not an entityperson, it's an entityman!
