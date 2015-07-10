@@ -19,12 +19,41 @@ entityman.config(['$routeProvider',
       resolve: {
         entities: loadEntities
       }
+    })
+    .when('/entity/:type/:id', {
+      templateUrl: 'entity.html',
+      controller: 'EntityController',
+      reloadOnSearch: true,
+      resolve: {
+        entity: loadEntity
+      }
     });
 }]);
+
 
 var loadEntities = function($http) {
   return $http.get(baseUrl + '/entities/workspace/default');
 };
+
+
+var loadEntity = function($http) {
+  return $http.get(baseUrl + '/entities/workspace/default');
+};
+
+
+entityman.directive('fileListing', function () {
+  return {
+    restrict: 'E',
+    scope: {
+      files: '='
+    },
+    templateUrl: 'file_listing.html',
+    link: function (scope, element, attrs, model) {
+      //console.log(scope);
+    }
+  };
+});
+
 
 entityman.controller('BaseController', function ($scope, $modal) {
 
@@ -82,11 +111,12 @@ entityman.controller('UploadController', function($scope, $location, $modalInsta
 });
 
 
-
 entityman.controller('IndexController', function ($scope, $location, entities) {
   var skipGroups = ['Fact', 'IngestedFile'];
 
   $scope.files = entities.data.o.IngestedFile;
+
+  console.log($scope.files);
 
   $scope.getEntities = function() {
     var results = [];
@@ -111,6 +141,12 @@ entityman.controller('IndexController', function ($scope, $location, entities) {
 
 
 entityman.controller('FileController', function ($scope, $location, $routeParams, entities) {
+  console.log(entities);
+  console.log($routeParams);
+});
+
+
+entityman.controller('EntityController', function ($scope, $location, $routeParams, entities) {
   console.log(entities);
   console.log($routeParams);
 });
