@@ -142,7 +142,6 @@ entityman.controller('UploadController', function($scope, $location, $modalInsta
 
 
 entityman.controller('IndexController', function ($scope, $location, entities) {
-  var skipGroups = ;
   var results = [];
   angular.forEach(entities.data.o, function(entities, type) {
     if (angular.isArray(entities)) {
