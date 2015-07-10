@@ -156,8 +156,10 @@ entityman.controller('IndexController', function ($scope, $location, entities) {
   angular.forEach(entities.data.o, function(entities, type) {
     if (angular.isArray(entities)) {
       angular.forEach(entities, function(entity) {
-        entity.type = type;
-        results.push(entity);
+        if (entity.fileIds && entity.fileIds.length > 1) {
+          entity.type = type;
+          results.push(entity);
+        }
       });
     };
   });
