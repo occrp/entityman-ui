@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html ng-app="entityman">
+<head>
+  <meta charset="utf-8">
+  <title>entityman</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.5/css/bootstrap.min.css">
+  <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
+  <link rel="shortcut icon" href="http://assets.pudo.org/img/favicon.ico">
+</head>
+<body>
+  <div class="container">
+    <h1 class="page-header"><a href='#/'>EntityMan Demo</a></h1>
+    <div ng-view></div>
+  </div>
+
+  <script type="text/ng-template" id="index.html">
+    <div class="row">
+      <div class="col-md-6">
+        <h3>Entities</h3>
+        <table class="table table-striped">
+          <tr>
+            <th>Type</th>
+            <th>Name</th>
+            <th>Source</th>
+          </tr>
+          <tr ng-repeat="entity in getEntities()">
+            <td>{{entity.type}}</td>
+            <td>{{entity.label}}</td>
+            <td>{{entity.extractor}}</td>
+          </tr>
+        </table>
+      </div>
+      <div class="col-md-6">
+        <h3>
+          Files
+        </h3>
+        <table class="table table-striped">
+          <tr>
+            <th>Filename</th>
+          </tr>
+          <tr ng-repeat="file in files">
+            <td>{{file.file || 'Unnamed file'}}</td>
+          </tr>
+        </table>
+      </div>
+    </div>
+  </script>
+
+  <script src='https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.4.2/angular.min.js'></script>
+  <script src='https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.4.2/angular-route.min.js'></script>
+  <script>
+    var entityman = angular.module('entityman', ['ngRoute']),
+        baseUrl = 'http://entityman.pudo.org';
+
+    entityman.config(['$routeProvider',
+      function($routeProvider) {
+      $routeProvider.
+        when('/', {
+          templateUrl: 'index.html',
+          controller: 'IndexController',
+          reloadOnSearch: true,
+          resolve: {
+            entities: loadEntities
+          }
+        });
+    }]);
+
+    var loadEntities = function($http) {
+      return $http.get(baseUrl + '/entities/workspace/default');
+    };
+
+    entityman.controller('IndexController', function ($scope, entities) {
+      var skipGroups = ['Fact', 'IngestedFile'];
+
+      $scope.files = entities.data.o.IngestedFile;
+
+      $scope.getEntities = function() {
+        var results = [];
+        angular.forEach(entities.data.o, function(entities, type) {
+          if (skipGroups.indexOf(type) != -1) {
+            return;
+          }
+          angular.forEach(entities, function(entity) {
+            entity.type = type;
+            results.push(entity);
+          });
+        });
+        return results;
+      };
+      // console.log($scope.entities);
+    });
+
+  </script>
+</body>
+</html>
