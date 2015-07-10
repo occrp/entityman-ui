@@ -77,9 +77,9 @@ entityman.directive('entityListing', function () {
 
         scope.shownEntities = matching.sort(function(a, b) {
           var dist = b.fileIds.length - a.fileIds.length;
-          // if (dist != 0) {
-          //   return a.label.localeCompare(b.label);
-          // }
+          if (dist == 0) {
+            return a.label.localeCompare(b.label);
+          }
           return dist;
         });
       });
