@@ -88,7 +88,17 @@ entityman.directive('entityListing', function () {
 });
 
 
-entityman.controller('BaseController', function ($scope, $modal) {
+entityman.controller('BaseController', function ($scope, $rootScope, $modal) {
+  $rootScope.routeLoading = true;
+
+  $rootScope.$on("$routeChangeStart", function (event, next, current) {
+    $rootScope.routeLoading = true;
+  });
+
+  $rootScope.$on("$routeChangeSuccess", function (event, next, current) {
+    $rootScope.routeLoading = false;
+  });
+
   $scope.uploadFile = function() {
     var d = $modal.open({
       templateUrl: 'upload.html',
