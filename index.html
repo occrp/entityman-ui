@@ -22,12 +22,10 @@
           <tr>
             <th>Type</th>
             <th>Name</th>
-            <th>Source</th>
           </tr>
           <tr ng-repeat="entity in getEntities()">
             <td>{{entity.type}}</td>
             <td>{{entity.label}}</td>
-            <td>{{entity.extractor}}</td>
           </tr>
         </table>
       </div>
@@ -43,14 +41,39 @@
             <td>{{file.file || 'Unnamed file'}}</td>
           </tr>
         </table>
+        <form>
+          <div class="form-group">
+            <span ng-hide="uploadMessage">
+              <div class="input-group" ngf-select ngf-change="setFile($files, $event)">
+                <input type="text" class="form-control" ng-model="file.name" readonly>
+                <span class="input-group-btn">
+                  <span class="btn btn-default">
+                    Browse
+                  </span>
+                </span>
+              </div>
+              <p class="help-block">
+                Upload a file from your computer.
+              </p>
+              <button ng-click="upload()" class="btn btn-default" ng-disabled="!file.name">Upload</button>
+            </span>
+            <div class="progress" ng-show="uploadMessage">
+              <i class="fa fa-spinner fa-pulse"></i>
+              {{uploadMessage}}
+            </div>
+          </div>
+        </form>
       </div>
     </div>
   </script>
 
   <script src='https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.4.2/angular.min.js'></script>
   <script src='https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.4.2/angular-route.min.js'></script>
+  <script src='https://cdnjs.cloudflare.com/ajax/libs/danialfarid-angular-file-upload/5.0.9/ng-file-upload-all.min.js'></script>
+
+  </script>
   <script>
-    var entityman = angular.module('entityman', ['ngRoute']),
+    var entityman = angular.module('entityman', ['ngRoute', 'ngFileUpload']),
         baseUrl = 'http://entityman.pudo.org';
 
     entityman.config(['$routeProvider',
@@ -70,10 +93,12 @@
       return $http.get(baseUrl + '/entities/workspace/default');
     };
 
-    entityman.controller('IndexController', function ($scope, entities) {
+    entityman.controller('IndexController', function ($scope, $location, Upload, entities) {
       var skipGroups = ['Fact', 'IngestedFile'];
 
       $scope.files = entities.data.o.IngestedFile;
+      $scope.file = {};
+      $scope.uploadMessage = null;
 
       $scope.getEntities = function() {
         var results = [];
@@ -88,7 +113,35 @@
         });
         return results;
       };
-      // console.log($scope.entities);
+
+      $scope.setFile = function(files) {
+        for (var i in files) {
+          $scope.file = files[i];
+        }
+      };
+
+      $scope.upload = function() {
+        Upload.upload({
+          url: baseUrl + '/entities/ingestSync/default',
+          file: $scope.file
+        }).progress(function (evt) {
+          var pct = parseInt((evt.loaded / evt.total) * 100);
+          if (pct >= 99) {
+            $scope.uploadMessage = 'Processing the document...';
+          } else {
+            $scope.uploadMessage = pct + '% uploaded';
+          }
+        }).success(function (data, status, headers, config) {
+          console.log('ok!', data);
+          $scope.file = {};
+          $scope.uploadMessage = null;
+        }).error(function (data, status, headers, conf) {
+          $scope.file = {};
+          $scope.uploadMessage = null;
+        });
+      };
+
+
     });
 
   </script>
