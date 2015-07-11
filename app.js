@@ -39,7 +39,7 @@ var loadEntities = function($http) {
 
 var loadFileEntities = function($http, $route) {
   var fileId = $route.current.params.id;
-  return $http.get(baseUrl + '/entities/getFile/' + fileId);
+  return $http.get(baseUrl + '/entities/AllByFileId/' + fileId);
 };
 
 
@@ -49,13 +49,26 @@ var loadFile = function($http, $route) {
 };
 
 
-var loadEntityFiles = function($http, $q, $route) {
+var loadEntityFiles = function($http, $q, $route, $sce) {
   var entityId = $route.current.params.id,
       entityType = $route.current.params.type,
       result = {files: []},
       done = $q.defer();
-  $http.get(baseUrl + '/entities/byId/' + entityType + '/' + entityId).then(function(res) {
-    result.entity = res.data.o;
+  $q.all([
+    $http.get(baseUrl + '/entities/byId/' + entityType + '/' + entityId),
+    $http.get(baseUrl + '/entities/getFacts/' + entityType + '/' + entityId)
+  ]).then(function(res) {
+    result.entity = res[0].data.o;
+    result.facts = res[1].data.o.map(function(fact) {
+      var excerpt = fact.data.excerpt
+      excerpt = excerpt.replace(result.entity.label, '<span class="hlt">' + result.entity.label + '</span>');
+      if (fact.position > 0) {
+        excerpt = '<span class="ell">...</span> ' + excerpt;
+      }
+      excerpt = excerpt + ' <span class="ell">...</span>';
+      fact.snippet = $sce.trustAsHtml(excerpt);
+      return fact;
+    });
     var https = result.entity.fileIds.map(function(fileId) {
       return $http.get(baseUrl + '/entities/byId/IngestedFile/' + fileId);
     });
@@ -74,13 +87,26 @@ entityman.directive('fileListing', function () {
   return {
     restrict: 'E',
     scope: {
-      files: '='
+      files: '=',
+      facts: '='
     },
     templateUrl: 'file_listing.html',
     link: function (scope, element, attrs, model) {
+
       scope.getDownloadUrl = function(fileId) {
         return baseUrl + '/entities/fileById/' + fileId;
-      }
+      };
+
+      scope.getFacts = function(fileId) {
+        var facts = [];
+        scope.facts.forEach(function(fact) {
+          if (fact.fileIds.indexOf(fileId) != -1) {
+            facts.push(fact);
+          }
+        });
+        return facts;
+      };
+
     }
   };
 });
@@ -188,7 +214,7 @@ entityman.controller('IndexController', function ($scope, $location, entities) {
   angular.forEach(entities.data.o, function(entities, type) {
     if (angular.isArray(entities)) {
       angular.forEach(entities, function(entity) {
-        if (entity.fileIds && entity.fileIds.length > 1) {
+        if (entity.fileIds) {
           entity.type = type;
           results.push(entity);
         }
@@ -196,6 +222,7 @@ entityman.controller('IndexController', function ($scope, $location, entities) {
     };
   });
   $scope.entities = results;
+  $scope.facts = [];
   $scope.files = entities.data.o.IngestedFile;
 });
 
@@ -218,7 +245,9 @@ entityman.controller('FileController', function ($scope, $location, $routeParams
 
 
 entityman.controller('EntityController', function ($scope, $location, $routeParams, data) {
-  var entityId = $routeParams.id, entityType = $routeParams.type;
+  var entityId = $routeParams.id;
+  $scope.entityType = $routeParams.type;
   $scope.entity = data.entity;
+  $scope.facts = data.facts;
   $scope.files = data.files;
 });

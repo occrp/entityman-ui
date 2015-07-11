@@ -32,9 +32,27 @@ h1 a, h1 a:hover {
     border-color: #982022;
 }
 
+.badge {
+    background-color: #982022;
+}
+
 .spinner {
     margin-top: 25%;
     text-align: center;
     font-size: 4em;
     color: #999;
+}
+
+.spaced {
+    padding-bottom: 0.5em;
+    margin-bottom: 0.5em;
+    border-bottom: 1px solid #efefef;
+}
+
+.hlt {
+    background-color: #FFFDBD;
+}
+
+.ell {
+    color: #aaa;
 }

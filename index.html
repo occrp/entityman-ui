@@ -47,7 +47,9 @@
           <a href="#/entity/{{entity.type}}/{{entity.id}}">{{entity.label}}</a>
         </td>
         <td>
-          <div class="badge">{{entity.fileIds.length}}</div>
+          <a href="#/entity/{{entity.type}}/{{entity.id}}">
+            <div class="badge">{{entity.fileIds.length}}</div>
+          </a>
         </td>
       </tr>
     </table>
@@ -57,13 +59,20 @@
     <table class="table table-striped">
       <tr>
         <th>Filename</th>
-        <th width="10%"></th>
+        <th>
+          <span ng-show="facts.length">Matches</span>
+        </th>
+        <th></th>
       </tr>
       <tr ng-repeat="file in files">
         <td><a href="#/file/{{file.id}}">{{file.originalFilename}}</a></td>
+        <td>
+          <div ng-repeat="fact in getFacts(file.id)" ng-bind-html="fact.snippet"
+            ng-class="{'spaced': !$last}"></div>
+        </td>
         <td class="text-right">
           <a ng-href="{{getDownloadUrl(file.id)}}" target="_self">
-            <i class="fa fa-cloud-download"></i> See file
+            <i class="fa fa-cloud-download"></i>&nbsp;See&nbsp;file
           </a>
         </td>
       </tr>
@@ -78,7 +87,7 @@
       </div>
       <div class="col-md-6">
         <h3>Files</h3>
-        <file-listing files="files"></file-listing>
+        <file-listing facts="facts" files="files"></file-listing>
       </div>
     </div>
   </script>
@@ -95,8 +104,8 @@
   <script type="text/ng-template" id="entity.html">
     <div class="row">
       <div class="col-md-12">
-        <h3>Files mentioning {{entity.label}}</h3>
-        <file-listing files="files"></file-listing>
+        <h3>Files mentioning {{entityType}}: {{entity.label}}</h3>
+        <file-listing facts="facts" files="files"></file-listing>
       </div>
     </div>
   </script>
