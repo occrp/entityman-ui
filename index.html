@@ -35,7 +35,6 @@
   </div>
 
   <script type="text/ng-template" id="entity_listing.html">
-    <h3>Entities</h3>
     <table class="table table-striped">
       <tr>
         <th>Type</th>
@@ -55,9 +54,6 @@
   </script>
 
   <script type="text/ng-template" id="file_listing.html">
-    <h3>
-      Files
-    </h3>
     <table class="table table-striped">
       <tr>
         <th>Filename</th>
@@ -71,9 +67,11 @@
   <script type="text/ng-template" id="index.html">
     <div class="row">
       <div class="col-md-6">
+        <h3>Entities</h3>
         <entity-listing entities="entities"></entity-listing>
       </div>
       <div class="col-md-6">
+        <h3>Files</h3>
         <file-listing files="files"></file-listing>
       </div>
     </div>
@@ -81,11 +79,9 @@
 
   <script type="text/ng-template" id="file.html">
     <div class="row">
-      <div class="col-md-6">
+      <div class="col-md-12">
+        <h3>Entities in {{file.originalFilename}}</h3>
         <entity-listing entities="entities"></entity-listing>
-      </div>
-      <div class="col-md-6">
-        {{file.originalFilename}}
       </div>
     </div>
   </script>
@@ -93,6 +89,7 @@
   <script type="text/ng-template" id="entity.html">
     <div class="row">
       <div class="col-md-12">
+        <h3>Files mentioning {{entity.label}}</h3>
         <file-listing files="files"></file-listing>
       </div>
     </div>
@@ -108,8 +105,8 @@
       <form>
         <div class="form-group">
           <span ng-hide="uploadMessage">
-            <div class="input-group" ngf-select ngf-change="setFile($files, $event)">
-              <input type="text" class="form-control" ng-model="file.name" readonly>
+            <div class="input-group" ngf-select ngf-multiple="true" ngf-change="setFiles($files, $event)">
+              <input type="text" class="form-control" ng-model="filenames" readonly>
               <span class="input-group-btn">
                 <span class="btn btn-default">
                   Browse
@@ -129,7 +126,7 @@
     </div>
 
     <div class="modal-footer">
-      <button type="button" class="btn btn-occrp" ng-click="upload()" ng-disabled="!file.name">Upload</button>
+      <button type="button" class="btn btn-occrp" ng-click="upload()" ng-disabled="!files.length">Upload</button>
     </div>
   </script>
 

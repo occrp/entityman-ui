@@ -25,18 +25,13 @@ entityman.config(['$routeProvider',
       controller: 'EntityController',
       reloadOnSearch: true,
       resolve: {
-        entity: loadEntity
+        entities: loadEntities
       }
     });
 }]);
 
 
 var loadEntities = function($http) {
-  return $http.get(baseUrl + '/entities/workspace/default');
-};
-
-
-var loadEntity = function($http) {
   return $http.get(baseUrl + '/entities/workspace/default');
 };
 
@@ -109,23 +104,27 @@ entityman.controller('BaseController', function ($scope, $rootScope, $modal) {
 
 
 entityman.controller('UploadController', function($scope, $location, $modalInstance, Upload) {
-  $scope.file = {};
+  $scope.files = [];
+  $scope.filenames = '';
   $scope.uploadMessage = null;
 
   $scope.close = function() {
     $modalInstance.dismiss('cancel');
   };
 
-  $scope.setFile = function(files) {
-    for (var i in files) {
-      $scope.file = files[i];
-    }
+  $scope.setFiles = function(files) {
+    $scope.files = files;
+    $scope.uploadMessage = null;
+    var names = $scope.files.map(function(f) {
+      return f.name;
+    });
+    $scope.filenames = names.join(', ');
   };
 
   $scope.upload = function() {
     Upload.upload({
       url: baseUrl + '/entities/ingestSync/default',
-      file: $scope.file
+      file: $scope.files
     }).progress(function (evt) {
       var pct = parseInt((evt.loaded / evt.total) * 100);
       if (pct >= 99) {
@@ -138,14 +137,11 @@ entityman.controller('UploadController', function($scope, $location, $modalInsta
         var entity = data.o[i];
         if (entity['class'].indexOf('IngestedFile') != -1) {
           $location.path('/file/' + entity.id);
-          $modalInstance.close('ok');
         }
       }
-      $scope.file = {};
-      $scope.uploadMessage = null;
+      $modalInstance.close('ok');
     }).error(function (data, status, headers, conf) {
-      $scope.file = {};
-      $scope.uploadMessage = null;
+      $scope.setFiles([]);
     });
   };
 });
@@ -188,7 +184,23 @@ entityman.controller('FileController', function ($scope, $location, $routeParams
 });
 
 
-entityman.controller('EntityController', function ($scope, $location, $routeParams) {
-  //console.log(entities);
-  //console.log($routeParams);
+entityman.controller('EntityController', function ($scope, $location, $routeParams, entities) {
+  var entityId = $routeParams.id, entityType = $routeParams.type;
+  var results = [];
+  $scope.entity = {};
+  angular.forEach(entities.data.o, function(objs, type) {
+    if (angular.isArray(objs)) {
+      angular.forEach(objs, function(obj) {
+        if (obj.id == entityId) {
+          $scope.entity = obj;
+          angular.forEach(entities.data.o.IngestedFile, function(file) {
+            if (obj.fileIds.indexOf(file.id) != -1) {
+              results.push(file);
+            }
+          });
+        }
+      });
+    };
+  });
+  $scope.files = results;
 });
