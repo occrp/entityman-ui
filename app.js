@@ -94,7 +94,7 @@ entityman.directive('fileListing', function () {
     link: function (scope, element, attrs, model) {
 
       scope.getDownloadUrl = function(fileId) {
-        return baseUrl + '/entities/fileById/' + fileId;
+        return baseUrl + '/entities/getFile/' + fileId;
       };
 
       scope.getFacts = function(fileId) {
