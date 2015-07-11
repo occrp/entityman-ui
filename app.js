@@ -1,5 +1,5 @@
 var entityman = angular.module('entityman', ['ngRoute', 'ngFileUpload', 'ui.bootstrap']),
-    baseUrl = 'http://entityman.pudo.org';
+    baseUrl = 'http://entityman.pudo.org/ws';
 
 entityman.config(['$routeProvider',
   function($routeProvider) {
@@ -17,7 +17,8 @@ entityman.config(['$routeProvider',
       controller: 'FileController',
       reloadOnSearch: true,
       resolve: {
-        entities: loadEntities
+        file: loadFile,
+        entities: loadFileEntities
       }
     })
     .when('/entity/:type/:id', {
@@ -33,6 +34,18 @@ entityman.config(['$routeProvider',
 
 var loadEntities = function($http) {
   return $http.get(baseUrl + '/entities/workspace/default');
+};
+
+
+var loadFileEntities = function($http, $route) {
+  var fileId = $route.current.params.id;
+  return $http.get(baseUrl + '/entities/AllByFileId/' + fileId);
+};
+
+
+var loadFile = function($http, $route) {
+  var fileId = $route.current.params.id;
+  return $http.get(baseUrl + '/entities/byId/IngestedFile/' + fileId);
 };
 
 
@@ -164,19 +177,16 @@ entityman.controller('IndexController', function ($scope, $location, entities) {
 });
 
 
-entityman.controller('FileController', function ($scope, $location, $routeParams, entities) {
+entityman.controller('FileController', function ($scope, $location, $routeParams, file, entities) {
   var fileId = $routeParams.id;
+  $scope.file = file.data.o;
+
   var results = [];
   angular.forEach(entities.data.o, function(entities, type) {
     if (angular.isArray(entities)) {
       angular.forEach(entities, function(entity) {
-        if (entity.fileIds.indexOf(fileId) != -1) {
-          entity.type = type;
-          results.push(entity);
-        }
-        if (entity.id == fileId) {
-          $scope.file = entity;
-        }
+        entity.type = type;
+        results.push(entity);  
       });
     };
   });
