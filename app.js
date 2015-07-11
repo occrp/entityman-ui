@@ -39,7 +39,7 @@ var loadEntities = function($http) {
 
 var loadFileEntities = function($http, $route) {
   var fileId = $route.current.params.id;
-  return $http.get(baseUrl + '/entities/AllByFileId/' + fileId);
+  return $http.get(baseUrl + '/entities/getFile/' + fileId);
 };
 
 
@@ -78,7 +78,9 @@ entityman.directive('fileListing', function () {
     },
     templateUrl: 'file_listing.html',
     link: function (scope, element, attrs, model) {
-      //console.log(scope);
+      scope.getDownloadUrl = function(fileId) {
+        return baseUrl + '/entities/fileById/' + fileId;
+      }
     }
   };
 });
