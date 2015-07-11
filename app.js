@@ -26,7 +26,7 @@ entityman.config(['$routeProvider',
       controller: 'EntityController',
       reloadOnSearch: true,
       resolve: {
-        entities: loadEntities
+        data: loadEntityFiles
       }
     });
 }]);
@@ -46,6 +46,27 @@ var loadFileEntities = function($http, $route) {
 var loadFile = function($http, $route) {
   var fileId = $route.current.params.id;
   return $http.get(baseUrl + '/entities/byId/IngestedFile/' + fileId);
+};
+
+
+var loadEntityFiles = function($http, $q, $route) {
+  var entityId = $route.current.params.id,
+      entityType = $route.current.params.type,
+      result = {files: []},
+      done = $q.defer();
+  $http.get(baseUrl + '/entities/byId/' + entityType + '/' + entityId).then(function(res) {
+    result.entity = res.data.o;
+    var https = result.entity.fileIds.map(function(fileId) {
+      return $http.get(baseUrl + '/entities/byId/IngestedFile/' + fileId);
+    });
+    $q.all(https).then(function(files) {
+      files.forEach(function(file) {
+        result.files.push(file.data.o);
+      });
+      done.resolve(result);
+    });
+  });
+  return done.promise;
 };
 
 
@@ -186,7 +207,7 @@ entityman.controller('FileController', function ($scope, $location, $routeParams
     if (angular.isArray(entities)) {
       angular.forEach(entities, function(entity) {
         entity.type = type;
-        results.push(entity);  
+        results.push(entity);
       });
     };
   });
@@ -194,23 +215,8 @@ entityman.controller('FileController', function ($scope, $location, $routeParams
 });
 
 
-entityman.controller('EntityController', function ($scope, $location, $routeParams, entities) {
+entityman.controller('EntityController', function ($scope, $location, $routeParams, data) {
   var entityId = $routeParams.id, entityType = $routeParams.type;
-  var results = [];
-  $scope.entity = {};
-  angular.forEach(entities.data.o, function(objs, type) {
-    if (angular.isArray(objs)) {
-      angular.forEach(objs, function(obj) {
-        if (obj.id == entityId) {
-          $scope.entity = obj;
-          angular.forEach(entities.data.o.IngestedFile, function(file) {
-            if (obj.fileIds.indexOf(file.id) != -1) {
-              results.push(file);
-            }
-          });
-        }
-      });
-    };
-  });
-  $scope.files = results;
+  $scope.entity = data.entity;
+  $scope.files = data.files;
 });
